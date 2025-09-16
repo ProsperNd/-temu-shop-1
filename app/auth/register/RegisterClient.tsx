@@ -2,18 +2,21 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Loader2, User, UserPlus } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, Loader2, User, Phone, UserPlus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { signIn } from "next-auth/react";
+import { doc, setDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Name too long"),
   email: z.string().email("Invalid email").min(1, "Email is required"),
+  phone: z.string().min(10, "Phone number too short"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -43,10 +46,38 @@ export default function RegisterClient() {
         await updateProfile(userCredential.user, {
           displayName: data.name,
         });
-        router.push("/dashboard");
+
+        // Create user document in Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          role: "customer",
+          createdAt: new Date().toISOString(),
+          loyaltyPoints: 0,
+          loyaltyTier: "bronze",
+        });
+
+        // Sign in with NextAuth to establish session
+        const result = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          redirect: false,
+        });
+
+        if (!result?.error) {
+          router.push("/dashboard");
+        } else {
+          setError("Registration successful, but session creation failed. Please log in.");
+          router.push("/auth/login");
+        }
       }
-    } catch (err) {
-      setError("Registration failed. Email may already be in use.");
+    } catch (err: any) {
+      if (err.code === "auth/email-already-in-use") {
+        setError("Email already in use. Please use a different email or log in.");
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -112,6 +143,23 @@ export default function RegisterClient() {
                 placeholder="Enter your email"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
+            </div>
+
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                <Phone className="inline mr-2" size={16} />
+                Phone Number
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                {...register("phone")}
+                className={`appearance-none rounded-md relative block w-full px-3 py-2 border ${
+                  errors.phone ? "border-red-500" : "border-gray-300"
+                } placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm`}
+                placeholder="Enter your phone number"
+              />
+              {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
             </div>
 
             <div>
