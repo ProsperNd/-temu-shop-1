@@ -7,18 +7,6 @@ import { contactInfo } from "@/constants/contact";
 import Link from "next/link";
 import TestimonialCard from "@/components/ui/TestimonialCard";
 
-export const metadata = {
-  title: "About Us - Cleaning Hub | Best & Excellence Cleaning Services",
-  description: "Learn about Cleaning Hub, our mission, values, and team. Committed to providing the best cleaning services with excellence and care.",
-  keywords: "about cleaning hub, cleaning company, professional cleaning team, cleaning mission, cleaning values",
-  openGraph: {
-    title: "About Us - Cleaning Hub",
-    description: "Discover our story, mission, and commitment to excellence in cleaning services.",
-    images: ["/og-about.jpg"],
-    url: "https://cleaninghub.com/about",
-  }
-};
-
 export default function AboutPage() {
   const containerVariants = {
     hidden: { opacity: 0 },
