@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, DollarSign, Trash2, Edit, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -25,13 +25,7 @@ export default function BookingsClient() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (status === "authenticated" && session?.user.id) {
-      fetchBookings();
-    }
-  }, [status, session]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       const q = query(
         collection(db, "bookings"),
@@ -87,7 +81,13 @@ export default function BookingsClient() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user.id]);
+
+ useEffect(() => {
+   if (status === "authenticated" && session?.user.id) {
+     fetchBookings();
+   }
+ }, [status, session, fetchBookings]);
 
   const cancelBooking = async (id: string) => {
     if (!confirm("Are you sure you want to cancel this booking? This action cannot be undone.")) return;
@@ -309,22 +309,5 @@ export default function BookingsClient() {
         </Link>
       </motion.div>
     </div>
-  );
-}
-
-function getStatusBadge(status: string) {
-  const badges = {
-    pending: { class: "bg-yellow-100 text-yellow-800", icon: AlertTriangle },
-    confirmed: { class: "bg-green-100 text-green-800", icon: CheckCircle },
-    completed: { class: "bg-blue-100 text-blue-800", icon: CheckCircle },
-    cancelled: { class: "bg-red-100 text-red-800", icon: XCircle },
-  };
-  const badge = badges[status as keyof typeof badges];
-  const Icon = badge.icon;
-  return (
-    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badge.class}`}>
-      <Icon size={12} className="mr-1" />
-      {status.charAt(0).toUpperCase() + status.slice(1)}
-    </span>
   );
 }
