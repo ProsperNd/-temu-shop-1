@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Calendar, Clock, Send, User, Mail, Phone as PhoneIcon, FileText, ArrowLeft, ArrowRight, Star, Check } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -20,12 +21,22 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function BookingClient() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+
+  // Pre-select service from URL parameter
+  useEffect(() => {
+    const serviceParam = searchParams.get("service");
+    if (serviceParam && services.find(s => s.id === serviceParam)) {
+      setSelectedService(serviceParam);
+      setStep(2); // Skip to date selection if service is pre-selected
+    }
+  }, [searchParams]);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),

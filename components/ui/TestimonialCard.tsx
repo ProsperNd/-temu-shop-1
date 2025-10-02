@@ -10,19 +10,9 @@ export default function TestimonialCard({ testimonial }: TestimonialCardProps) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300">
       <div className="flex items-start space-x-4 mb-4">
-        {testimonial.avatar ? (
-          <Image
-            src={testimonial.avatar}
-            alt={testimonial.name}
-            width={50}
-            height={50}
-            className="rounded-full object-cover"
-          />
-        ) : (
-          <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-gray-600 font-semibold">{testimonial.name.charAt(0)}</span>
-          </div>
-        )}
+        <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center">
+          <span className="text-gray-600 font-semibold">{testimonial.name.charAt(0)}</span>
+        </div>
         <div className="flex-1">
           <div className="flex items-center space-x-1 mb-1">
             {Array.from({ length: 5 }).map((_, i) => (

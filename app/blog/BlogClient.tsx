@@ -137,16 +137,9 @@ export default function BlogClient() {
                     viewport={{ once: true }}
                     className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer"
                   >
-                    {post.featuredImage && (
-                      <div className="relative h-48 bg-gray-200">
-                        <Image
-                          src={post.featuredImage}
-                          alt={post.title}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
+                    <div className="relative h-48 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500 font-semibold">Blog Image</span>
+                    </div>
                     <div className="p-6">
                       <div className="flex items-center space-x-2 mb-2">
                         <Tag className="text-blue-600" size={16} />

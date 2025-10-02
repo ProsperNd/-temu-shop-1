@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Image as LucideImage, Filter, Eye } from "lucide-react";
 import Image from "next/image";
@@ -34,11 +34,6 @@ export default function GalleryClient() {
 
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
-    if (filter === "All") {
-      setFilteredItems(itemsWithService);
-    } else {
-      setFilteredItems(itemsWithService.filter(item => item.serviceName === filter));
-    }
   };
 
   const openModal = (item: GalleryItemWithService) => {
@@ -49,9 +44,14 @@ export default function GalleryClient() {
     setSelectedItem(null);
   };
 
-  if (selectedFilter === "All") {
-    setFilteredItems(itemsWithService);
-  }
+  // Handle filtering logic in useEffect to prevent infinite re-renders
+  useEffect(() => {
+    if (selectedFilter === "All") {
+      setFilteredItems(itemsWithService);
+    } else {
+      setFilteredItems(itemsWithService.filter(item => item.serviceName === selectedFilter));
+    }
+  }, [selectedFilter, itemsWithService]);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -137,24 +137,14 @@ export default function GalleryClient() {
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">{item.description}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-0">
-                    <div className="relative h-48 bg-gray-200 group-hover:brightness-75 transition-all">
-                      <Image
-                        src={item.beforeUrl}
-                        alt={`${item.title} - Before`}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative h-48 bg-gray-300 group-hover:brightness-75 transition-all flex items-center justify-center">
+                      <span className="text-gray-600 font-semibold">Before</span>
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="text-white text-xs">Before</span>
                       </div>
                     </div>
-                    <div className="relative h-48 bg-gray-200">
-                      <Image
-                        src={item.afterUrl}
-                        alt={`${item.title} - After`}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="relative h-48 bg-green-100 flex items-center justify-center">
+                      <span className="text-green-600 font-semibold">After</span>
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity">
                         <span className="text-white text-xs">After</span>
                       </div>
@@ -208,25 +198,17 @@ export default function GalleryClient() {
                 <p className="text-gray-600 mb-6">{selectedItem.description}</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="relative">
-                    <Image
-                      src={selectedItem.beforeUrl}
-                      alt={`${selectedItem.title} - Before`}
-                      width={600}
-                      height={400}
-                      className="rounded-lg object-cover"
-                    />
+                    <div className="w-full h-64 bg-gray-300 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-600 font-semibold">Before Image</span>
+                    </div>
                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-sm">
                       Before
                     </div>
                   </div>
                   <div className="relative">
-                    <Image
-                      src={selectedItem.afterUrl}
-                      alt={`${selectedItem.title} - After`}
-                      width={600}
-                      height={400}
-                      className="rounded-lg object-cover"
-                    />
+                    <div className="w-full h-64 bg-green-100 rounded-lg flex items-center justify-center">
+                      <span className="text-green-600 font-semibold">After Image</span>
+                    </div>
                     <div className="absolute top-2 left-2 bg-green-500 text-white px-2 py-1 rounded text-sm">
                       After
                     </div>
