@@ -4,6 +4,16 @@ import GoogleProvider from "next-auth/providers/google";
 import { auth } from "@/lib/firebase";
 import { signInWithEmailAndPassword } from "firebase/auth";
 
+// Helper function to safely initialize Firebase only when needed
+const getFirebaseAuth = () => {
+  try {
+    return auth;
+  } catch (error) {
+    console.warn("Firebase auth not available during build time:", error instanceof Error ? error.message : String(error));
+    return null;
+  }
+};
+
 const authOptions = {
   providers: [
     CredentialsProvider({
@@ -18,8 +28,14 @@ const authOptions = {
         }
 
         try {
+          const firebaseAuth = getFirebaseAuth();
+          if (!firebaseAuth) {
+            console.warn("Firebase auth not available - this may be during build time");
+            return null;
+          }
+
           const userCredential = await signInWithEmailAndPassword(
-            auth,
+            firebaseAuth,
             credentials.email,
             credentials.password
           );
