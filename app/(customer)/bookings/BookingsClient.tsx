@@ -19,7 +19,7 @@ interface Booking {
 }
 
 export default function BookingsClient() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() || { data: null, status: "loading" };
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);

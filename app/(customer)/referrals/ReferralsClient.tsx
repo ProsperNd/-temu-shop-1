@@ -16,7 +16,7 @@ interface Referral {
 }
 
 export default function ReferralsClient() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() || { data: null, status: "loading" };
   const [referralCode, setReferralCode] = useState("");
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);

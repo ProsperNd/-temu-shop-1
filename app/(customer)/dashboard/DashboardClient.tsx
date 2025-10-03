@@ -27,7 +27,7 @@ interface Booking {
 }
 
 export default function DashboardClient() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() || { data: null, status: "loading" };
   const [stats, setStats] = useState<DashboardStats>({
     totalBookings: 0,
     upcomingBookings: 0,
