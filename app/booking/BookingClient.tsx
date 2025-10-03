@@ -57,7 +57,9 @@ export default function BookingClient() {
       });
       setSubmitStatus("success");
       reset();
-      setStep(1);
+      // Reset to step 1 or 2 based on whether service was pre-selected
+      const serviceParam = searchParams.get("service");
+      setStep(serviceParam && services.find(s => s.id === serviceParam) ? 2 : 1);
       setSelectedService("");
       setSelectedDate("");
       setSelectedTime("");
@@ -77,9 +79,20 @@ export default function BookingClient() {
     setStep(step + 1);
   };
 
-  const prevStep = () => setStep(step - 1);
+  // Get the selected service details for display
+  const currentSelectedService = services.find(s => s.id === selectedService);
 
-  const progress = (step / 4) * 100;
+  const prevStep = () => {
+    if (step === 2 && searchParams.get("service")) {
+      // If we're on step 2 and service was pre-selected, go back to step 1 (service selection)
+      setStep(1);
+    } else {
+      setStep(step - 1);
+    }
+  };
+
+  const totalSteps = searchParams.get("service") ? 3 : 4;
+  const progress = (step / totalSteps) * 100;
 
   const stepContent = () => {
     switch (step) {
@@ -88,6 +101,20 @@ export default function BookingClient() {
           <div>
             <h2 className="text-3xl font-bold text-gray-800 mb-6">Select a Service</h2>
             <p className="text-gray-600 mb-8">Choose the cleaning service you need for your booking.</p>
+            {searchParams.get("service") && currentSelectedService && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2">Service Already Selected:</h3>
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <span className="text-blue-600 font-bold">{currentSelectedService.name.charAt(0)}</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-800">{currentSelectedService.name}</div>
+                    <div className="text-sm text-gray-600">${currentSelectedService.price} | {currentSelectedService.duration} min</div>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service) => (
                 <motion.div
@@ -276,14 +303,21 @@ export default function BookingClient() {
             ></div>
           </div>
           <div className="flex justify-between text-sm text-gray-600">
-            <span>Step {step} of 4</span>
-            <span>{step === 1 ? "Service" : step === 2 ? "Date" : step === 3 ? "Time" : "Details"}</span>
+            <span>
+              Step {step} of {searchParams.get("service") ? "3" : "4"}
+            </span>
+            <span>
+              {step === 1 ? "Service" :
+               step === 2 ? "Date" :
+               step === 3 ? (searchParams.get("service") ? "Time" : "Time") :
+               "Details"}
+            </span>
           </div>
         </div>
 
         {stepContent()}
 
-        {step > 1 && step < 4 && (
+        {step > 1 && step < (searchParams.get("service") ? 3 : 4) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
