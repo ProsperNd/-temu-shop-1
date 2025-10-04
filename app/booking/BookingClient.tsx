@@ -28,6 +28,7 @@ export default function BookingClient() {
   const [selectedTime, setSelectedTime] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
+  const [minDate, setMinDate] = useState("");
 
   // Pre-select service from URL parameter
   useEffect(() => {
@@ -37,6 +38,11 @@ export default function BookingClient() {
       setStep(2); // Skip to date selection if service is pre-selected
     }
   }, [searchParams]);
+
+  // Set minimum date for date input (client-side only)
+  useEffect(() => {
+    setMinDate(new Date().toISOString().split('T')[0]);
+  }, []);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -162,7 +168,7 @@ export default function BookingClient() {
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
                 className="w-full max-w-md px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg"
-                min={new Date().toISOString().split('T')[0]}
+                min={minDate}
               />
             </motion.div>
           </div>
