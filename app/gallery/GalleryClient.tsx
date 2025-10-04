@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Image as LucideImage, Filter, Eye } from "lucide-react";
 import Image from "next/image";
@@ -27,10 +27,12 @@ export default function GalleryClient() {
     return service?.name || "Uncategorized";
   }))];
 
-  const itemsWithService: GalleryItemWithService[] = galleryItems.map(item => ({
-    ...item,
-    serviceName: services.find(s => s.id === item.serviceId)?.name || "General Cleaning",
-  }));
+  const itemsWithService: GalleryItemWithService[] = useMemo(() =>
+    galleryItems.map(item => ({
+      ...item,
+      serviceName: services.find(s => s.id === item.serviceId)?.name || "General Cleaning",
+    })), []
+  );
 
   const handleFilterChange = (filter: string) => {
     setSelectedFilter(filter);
