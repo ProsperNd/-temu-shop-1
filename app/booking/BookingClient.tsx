@@ -57,22 +57,55 @@ export default function BookingClient() {
     setIsSubmitting(true);
     setSubmitStatus("idle");
     try {
-      // Placeholder: In production, send to API or n8n workflow
-      console.log("Booking submitted:", {
-        service: selectedService,
+      // Get the selected service details
+      const service = services.find(s => s.id === selectedService);
+      if (!service) {
+        throw new Error("Service not found");
+      }
+
+      // Call Firebase Function to process booking
+      const bookingData = {
+        serviceId: selectedService,
+        serviceName: service.name,
         date: selectedDate,
         time: selectedTime,
-        ...data,
+        duration: service.duration,
+        price: service.price,
+        customerName: data.name,
+        customerEmail: data.email,
+        customerPhone: data.phone,
+        notes: data.notes,
+        channel: "website" as const
+      };
+
+      // This will call the Firebase Function we created
+      const response = await fetch('/api/process-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData),
       });
-      setSubmitStatus("success");
-      reset();
-      // Reset to step 1 or 2 based on whether service was pre-selected
-      const serviceParam = searchParams.get("service");
-      setStep(serviceParam && services.find(s => s.id === serviceParam) ? 2 : 1);
-      setSelectedService("");
-      setSelectedDate("");
-      setSelectedTime("");
-      setTimeout(() => setSubmitStatus("idle"), 5000);
+
+      if (!response.ok) {
+        throw new Error('Failed to submit booking');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSubmitStatus("success");
+        reset();
+        // Reset to step 1 or 2 based on whether service was pre-selected
+        const serviceParam = searchParams.get("service");
+        setStep(serviceParam && services.find(s => s.id === serviceParam) ? 2 : 1);
+        setSelectedService("");
+        setSelectedDate("");
+        setSelectedTime("");
+        setTimeout(() => setSubmitStatus("idle"), 5000);
+      } else {
+        throw new Error(result.message || 'Booking submission failed');
+      }
     } catch (error) {
       console.error("Submission error:", error);
       setSubmitStatus("error");

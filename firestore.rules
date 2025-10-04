@@ -1,0 +1,106 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isN8nServiceAccount() {
+      // This would be configured with n8n's service account email
+      return request.auth.token.service_account == true;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own data
+      allow read, write: if isOwner(userId);
+
+      // Admins can read all users
+      allow read: if isAdmin();
+
+      // n8n can read/write user data for processing
+      allow read, write: if isN8nServiceAccount();
+
+      // Allow creation during registration
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      // Users can read their own bookings
+      allow read: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/bookings/$(bookingId)) &&
+        get(/databases/$(database)/documents/bookings/$(bookingId)).data.customerEmail == request.auth.token.email;
+
+      // Users can create bookings (for website bookings)
+      allow create: if isAuthenticated();
+
+      // n8n can read/write bookings for WhatsApp processing
+      allow read, write: if isN8nServiceAccount();
+
+      // Admins can read/write all bookings
+      allow read, write: if isAdmin();
+
+      // Allow updates for status changes
+      allow update: if isAuthenticated() || isN8nServiceAccount() || isAdmin();
+    }
+
+    // Reviews collection
+    match /reviews/{reviewId} {
+      // Users can read all reviews (for display)
+      allow read: if true;
+
+      // Users can create their own reviews
+      allow create: if isAuthenticated();
+
+      // n8n can read/write reviews for processing
+      allow read, write: if isN8nServiceAccount();
+
+      // Admins can manage all reviews
+      allow write: if isAdmin();
+    }
+
+    // Services collection (for admin management)
+    match /services/{serviceId} {
+      // Everyone can read services (for booking)
+      allow read: if true;
+
+      // Only admins can modify services
+      allow write: if isAdmin();
+
+      // n8n can read services for processing
+      allow read: if isN8nServiceAccount();
+    }
+
+    // Notifications collection (for n8n workflow management)
+    match /notifications/{notificationId} {
+      // n8n can manage notifications
+      allow read, write: if isN8nServiceAccount();
+
+      // Admins can read notifications
+      allow read: if isAdmin();
+    }
+
+    // Analytics collection (for Firebase Analytics)
+    match /analytics/{document=**} {
+      // Only n8n and admins can access analytics
+      allow read, write: if isN8nServiceAccount() || isAdmin();
+    }
+
+    // Default deny rule
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
