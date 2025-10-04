@@ -41,7 +41,10 @@ export default function BookingClient() {
 
   // Set minimum date for date input (client-side only)
   useEffect(() => {
-    setMinDate(new Date().toISOString().split('T')[0]);
+    // Check if we're in a browser environment before using Date API
+    if (typeof window !== 'undefined') {
+      setMinDate(new Date().toISOString().split('T')[0]);
+    }
   }, []);
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
